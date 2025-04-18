@@ -23,7 +23,7 @@ jobs:
     - name: Set image name and tags
       id: vars
       run: |
-        IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/v2ray-base-webapp
+        IMAGE_NAME=rexezugebuild/v2ray-base-webapp
         GIT_SHA=${{ github.sha }}
         echo "image_name=${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
         echo "commit_sha=${GIT_SHA}" >> "$GITHUB_OUTPUT"
