@@ -1,4 +1,4 @@
-FROM debian:12
+FROM debian:12 AS builder
 
 WORKDIR /tmp
 
@@ -43,3 +43,22 @@ RUN cd /tmp/nginx-src && ./configure \
  && make \
  && cp objs/nginx /tmp/nginx \
  && upx --best --lzma /tmp/nginx
+
+COPY Init.c /tmp/Init.c
+
+RUN gcc -static -o /tmp/Init -Ofast /tmp/Init.c \
+ && upx --best --lzma /tmp/Init
+
+FROM gcr.io/distroless/static:nonroot AS runtime
+
+COPY --from=builder /tmp/v2ray/v2ray /usr/local/bin/v2ray
+
+COPY --from=builder /tmp/nginx /usr/sbin/nginx
+
+COPY --from=builder /tmp/Init /Init
+
+FROM scratch
+
+COPY --from=runtime / /
+
+ENTRYPOINT ["/Init"]
