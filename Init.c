@@ -8,6 +8,18 @@
 #define likely(x) __builtin_expect((x), 1)
 #define unlikely(x) __builtin_expect((x), 0)
 
+static char ENABLE_LOG_OUTPUT = 0;
+
+void processEnvironmentVariables(void) {
+  // Read Environment Variables
+  if (getenv("DEBUG_ENABLE_LOG_OUTPUT") != NULL) {
+    ENABLE_LOG_OUTPUT = 1;
+  }
+
+  // Set Environment Variables
+  // putenv("TRANSMISSION_WEB_HOME=/.TransmissionWebControl");
+}
+
 void runService_V2Ray(void) {
   // Start V2Ray Anti Censorship Platform
   printf("\033[0;32m%s\033[0m%s\n",
@@ -17,8 +29,10 @@ void runService_V2Ray(void) {
   pid_t pidV2Ray = fork();
   if (likely(pidV2Ray == 0)) {
     fclose(stdin);
-    freopen("/dev/null", "w", stdout);
-    freopen("/dev/null", "w", stderr);
+    if (!ENABLE_LOG_OUTPUT) {
+      freopen("/dev/null", "w", stdout);
+      freopen("/dev/null", "w", stderr);
+    }
     execl("/usr/local/bin/v2ray", "v2ray", "run", "-config",
           "/etc/v2ray/config.json", NULL);
     exit(EXIT_FAILURE);
@@ -49,8 +63,10 @@ void runService_Nginx(void) {
   pid_t pidV2Ray = fork();
   if (likely(pidV2Ray == 0)) {
     fclose(stdin);
-    freopen("/dev/null", "w", stdout);
-    freopen("/dev/null", "w", stderr);
+    if (!ENABLE_LOG_OUTPUT) {
+      freopen("/dev/null", "w", stdout);
+      freopen("/dev/null", "w", stderr);
+    }
     execl("/usr/sbin/nginx", "nginx", "-p", "/tmp/nginx", "-c",
           "/etc/nginx/nginx.conf", "-g", "daemon off;", NULL);
     exit(EXIT_FAILURE);
@@ -67,12 +83,13 @@ int main(void) {
     exit(EXIT_FAILURE);
   }
 
-  // Close Output Stream
-  freopen("/dev/null", "w", stdout);
-  freopen("/dev/null", "w", stderr);
+  processEnvironmentVariables();
 
-  // Set Environment Variable
-  // putenv("TRANSMISSION_WEB_HOME=/.TransmissionWebControl");
+  // Close Output Stream
+  if (!ENABLE_LOG_OUTPUT) {
+    freopen("/dev/null", "w", stdout);
+    freopen("/dev/null", "w", stderr);
+  }
 
   // Start Services
   runService_V2Ray();
