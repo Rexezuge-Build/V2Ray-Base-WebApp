@@ -57,6 +57,8 @@ COPY --from=builder /tmp/nginx /usr/sbin/nginx
 
 COPY --from=builder /tmp/Init /Init
 
+COPY overlay/ /
+
 FROM scratch
 
 COPY --from=runtime / /
