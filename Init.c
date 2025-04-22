@@ -8,13 +8,21 @@
 #define likely(x) __builtin_expect((x), 1)
 #define unlikely(x) __builtin_expect((x), 0)
 
+#define DEV_NULL "/dev/null"
+
+#define ENV_DEBUG_ENABLE_LOG_OUTPUT "DEBUG_ENABLE_LOG_OUTPUT"
+#define ENV_CLOUDFLARE_TUNNEL_TOKEN "CLOUDFLARE_TUNNEL_TOKEN"
+
 static char ENABLE_LOG_OUTPUT = 0;
+static char *CLOUDFLARE_TOKEN = NULL;
 
 void processEnvironmentVariables(void) {
   // Read Environment Variables
-  if (getenv("DEBUG_ENABLE_LOG_OUTPUT") != NULL) {
+  if (getenv(ENV_DEBUG_ENABLE_LOG_OUTPUT) != NULL) {
     ENABLE_LOG_OUTPUT = 1;
   }
+
+  CLOUDFLARE_TOKEN = getenv(ENV_CLOUDFLARE_TUNNEL_TOKEN);
 
   // Set Environment Variables
   // putenv("TRANSMISSION_WEB_HOME=/.TransmissionWebControl");
@@ -30,11 +38,13 @@ void runService_V2Ray(void) {
   if (likely(pidV2Ray == 0)) {
     fclose(stdin);
     if (!ENABLE_LOG_OUTPUT) {
-      freopen("/dev/null", "w", stdout);
-      freopen("/dev/null", "w", stderr);
+      freopen(DEV_NULL, "w", stdout);
+      freopen(DEV_NULL, "w", stderr);
     }
     execl("/usr/local/bin/v2ray", "v2ray", "run", "-config",
           "/etc/v2ray/config.json", NULL);
+    printf("\033[0;31m%s\033[0m%s\n",
+           "ERROR: ", "Failed to Run V2Ray Anti Censorship Platform");
     exit(EXIT_FAILURE);
   } else if (unlikely(pidV2Ray == -1)) {
     printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Failed to Fork");
@@ -64,11 +74,42 @@ void runService_Nginx(void) {
   if (likely(pidV2Ray == 0)) {
     fclose(stdin);
     if (!ENABLE_LOG_OUTPUT) {
-      freopen("/dev/null", "w", stdout);
-      freopen("/dev/null", "w", stderr);
+      freopen(DEV_NULL, "w", stdout);
+      freopen(DEV_NULL, "w", stderr);
     }
     execl("/usr/sbin/nginx", "nginx", "-p", "/tmp/nginx", "-c",
           "/etc/nginx/nginx.conf", "-g", "daemon off;", NULL);
+    printf("\033[0;31m%s\033[0m%s\n",
+           "ERROR: ", "Failed to Run Nginx Web Server");
+    exit(EXIT_FAILURE);
+  } else if (unlikely(pidV2Ray == -1)) {
+    printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Failed to Fork");
+    exit(EXIT_FAILURE);
+  }
+}
+
+void runService_CloudflareTunnel(void) {
+  if (CLOUDFLARE_TOKEN == NULL) {
+    printf("\033[0;33m%s\033[0m%s\n",
+           "WARNING: ", "Not Starting Cloudflare Tunnel");
+    return;
+  }
+
+  // Start Cloudflare Tunnel
+  printf("\033[0;32m%s\033[0m%s\n", "INFO: ", "Starting Cloudflare Tunnel");
+  fflush(stdout);
+
+  pid_t pidV2Ray = fork();
+  if (likely(pidV2Ray == 0)) {
+    fclose(stdin);
+    if (!ENABLE_LOG_OUTPUT) {
+      freopen(DEV_NULL, "w", stdout);
+      freopen(DEV_NULL, "w", stderr);
+    }
+    execl("/usr/local/bin/cloudflared", "tunnel", "--no-autoupdate", "run",
+          "--token", CLOUDFLARE_TOKEN, NULL);
+    printf("\033[0;31m%s\033[0m%s\n",
+           "ERROR: ", "Failed to Run Cloudflare Tunnel");
     exit(EXIT_FAILURE);
   } else if (unlikely(pidV2Ray == -1)) {
     printf("\033[0;31m%s\033[0m%s\n", "ERROR: ", "Failed to Fork");
@@ -87,13 +128,14 @@ int main(void) {
 
   // Close Output Stream
   if (!ENABLE_LOG_OUTPUT) {
-    freopen("/dev/null", "w", stdout);
-    freopen("/dev/null", "w", stderr);
+    freopen(DEV_NULL, "w", stdout);
+    freopen(DEV_NULL, "w", stderr);
   }
 
   // Start Services
   runService_V2Ray();
   runService_Nginx();
+  runService_CloudflareTunnel();
 
   // Collect Zombine Process
   while (1) {
