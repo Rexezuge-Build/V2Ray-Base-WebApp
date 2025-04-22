@@ -106,8 +106,8 @@ void runService_CloudflareTunnel(void) {
       freopen(DEV_NULL, "w", stdout);
       freopen(DEV_NULL, "w", stderr);
     }
-    execl("/usr/local/bin/cloudflared", "tunnel", "--no-autoupdate", "run",
-          "--token", CLOUDFLARE_TOKEN, NULL);
+    execl("/usr/local/bin/cloudflared", "cloudflared", "tunnel",
+          "--no-autoupdate", "run", "--token", CLOUDFLARE_TOKEN, NULL);
     printf("\033[0;31m%s\033[0m%s\n",
            "ERROR: ", "Failed to Run Cloudflare Tunnel");
     exit(EXIT_FAILURE);
