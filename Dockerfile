@@ -49,10 +49,7 @@ RUN curl -L -o /tmp/cloudflared https://github.com/cloudflare/cloudflared/releas
  && chmod +x /tmp/cloudflared \
  && upx --best --lzma /tmp/cloudflared
 
-COPY Init.c /tmp/Init.c
-
-RUN gcc -static -o /tmp/Init -Ofast /tmp/Init.c \
- && upx --best --lzma /tmp/Init
+FROM rexezuge/usagi-init AS init
 
 FROM gcr.io/distroless/static:nonroot AS runtime
 
@@ -62,7 +59,7 @@ COPY --from=builder /tmp/nginx /usr/sbin/nginx
 
 COPY --from=builder /tmp/cloudflared /usr/local/bin/cloudflared
 
-COPY --from=builder /tmp/Init /Init
+COPY --from=init /UsagiInit /UsagiInit
 
 COPY overlay/ /
 
@@ -70,4 +67,4 @@ FROM scratch
 
 COPY --from=runtime / /
 
-ENTRYPOINT ["/Init"]
+ENTRYPOINT ["/UsagiInit"]
