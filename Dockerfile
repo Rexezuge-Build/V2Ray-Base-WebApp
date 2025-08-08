@@ -44,18 +44,11 @@ RUN cd /tmp/nginx-src && ./configure \
  && cp objs/nginx /tmp/nginx \
  && upx --best --lzma /tmp/nginx
 
-# Download Cloudflare Tunnel and Compress
-RUN curl -L -o /tmp/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
- && chmod +x /tmp/cloudflared \
- && upx --best --lzma /tmp/cloudflared
-
 FROM rexezuge/usagi-init AS runtime
 
 COPY --from=builder /tmp/v2ray/v2ray /usr/local/bin/v2ray
 
 COPY --from=builder /tmp/nginx /usr/sbin/nginx
-
-COPY --from=builder /tmp/cloudflared /usr/local/bin/cloudflared
 
 COPY overlay/ /
 
