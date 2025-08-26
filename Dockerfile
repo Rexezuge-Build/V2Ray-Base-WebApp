@@ -44,7 +44,7 @@ RUN cd /tmp/nginx-src && ./configure \
  && cp objs/nginx /tmp/nginx \
  && upx --best --lzma /tmp/nginx
 
-FROM rexezuge/usagi-init AS runtime
+FROM rexezuge/usagi-init:release AS runtime
 
 COPY --from=builder /tmp/v2ray/v2ray /usr/local/bin/v2ray
 
