@@ -7,7 +7,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential curl unzip zlib1g-dev libpcre2-dev perl ca-certificates
 
 # Download and Install upx
-ENV UPX_VERSION=5.0.0
+ENV UPX_VERSION=5.0.2
 
 RUN curl -L https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz -o /tmp/upx.tar.xz \
  && tar -xf /tmp/upx.tar.xz -C /tmp \
