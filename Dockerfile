@@ -44,11 +44,15 @@ RUN cd /tmp/nginx-src && ./configure \
  && cp objs/nginx /tmp/nginx \
  && upx --best --lzma /tmp/nginx
 
+FROM rexezuge/nginx-uptime-go AS nginx-uptime-go
+
 FROM rexezuge/usagi-init:release AS runtime
 
 COPY --from=builder /tmp/v2ray/v2ray /usr/local/bin/v2ray
 
 COPY --from=builder /tmp/nginx /usr/sbin/nginx
+
+COPY --from=nginx-uptime-go /NginxUptime-Go /NginxUptime-Go
 
 COPY overlay/ /
 
