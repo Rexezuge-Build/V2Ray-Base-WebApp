@@ -20,9 +20,9 @@ RUN curl -L -o /tmp/v2ray.zip https://github.com/v2fly/v2ray-core/releases/lates
 
 FROM rexezugedockerutils/nginx-static AS nginx-static
 
-FROM rexezuge/nginx-uptime-go AS nginx-uptime-go
+FROM rexezugedockerutils/nginx-uptime-go AS nginx-uptime-go
 
-FROM rexezuge/usagi-init:release AS runtime
+FROM rexezugedockerutils/usagi-init:release AS runtime
 
 COPY --from=builder /tmp/v2ray/v2ray /usr/local/bin/v2ray
 
