@@ -9,7 +9,7 @@ RUN apt-get update \
 # Download and Install upx
 ENV UPX_VERSION=5.0.2
 
-RUN curl -L https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz -o /tmp/upx.tar.xz \
+RUN curl -L -o /tmp/upx.tar.xz https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz \
  && tar -xf /tmp/upx.tar.xz -C /tmp \
  && mv /tmp/upx-${UPX_VERSION}-amd64_linux/upx /usr/local/bin/upx
 
