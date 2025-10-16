@@ -18,6 +18,11 @@ RUN curl -L -o /tmp/v2ray.zip https://github.com/v2fly/v2ray-core/releases/lates
  && unzip /tmp/v2ray.zip -d /tmp/v2ray \
  && upx --best --lzma /tmp/v2ray/v2ray
 
+# Download Cloudflare Tunnel and Compress
+RUN curl -L -o /tmp/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
+ && chmod +x /tmp/cloudflared \
+ && upx --best --lzma /tmp/cloudflared
+
 FROM rexezugedockerutils/nginx-static AS nginx-static
 
 FROM rexezugedockerutils/nginx-uptime-go AS nginx-uptime-go
@@ -25,6 +30,8 @@ FROM rexezugedockerutils/nginx-uptime-go AS nginx-uptime-go
 FROM rexezugedockerutils/usagi-init:release AS runtime
 
 COPY --from=builder /tmp/v2ray/v2ray /usr/local/bin/v2ray
+
+COPY --from=builder /tmp/cloudflared /usr/local/bin/cloudflared
 
 COPY --from=nginx-static /nginx /usr/sbin/nginx
 
