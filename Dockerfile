@@ -23,6 +23,10 @@ RUN curl -L -o /tmp/cloudflared https://github.com/cloudflare/cloudflared/releas
  && chmod +x /tmp/cloudflared \
  && upx --best --lzma /tmp/cloudflared
 
+# Generate Random Self Signed SSL Certificate
+RUN mkdir -p /tmp/ssl/selfsigned \
+ && openssl req -x509 -newkey rsa:2048 -days 365 -nodes -keyout /tmp/ssl/selfsigned/server.key -out /tmp/ssl/selfsigned/server.crt -subj "/CN=localhost"
+
 FROM rexezugedockerutils/nginx-static AS nginx-static
 
 FROM rexezugedockerutils/nginx-uptime-go AS nginx-uptime-go
@@ -32,6 +36,8 @@ FROM rexezugedockerutils/usagi-init:release AS runtime
 COPY --from=builder /tmp/v2ray/v2ray /usr/local/bin/v2ray
 
 COPY --from=builder /tmp/cloudflared /usr/local/bin/cloudflared
+
+COPY --from=builder /tmp/ssl/selfsigned /etc/ssl/selfsigned
 
 COPY --from=nginx-static /nginx /usr/sbin/nginx
 
